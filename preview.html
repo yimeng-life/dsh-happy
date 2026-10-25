@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>dsh-happy — 预览</title>
+<style>
+  :root{
+    --dsw-alias-bg-base:#fff;
+    --dsw-alias-label-primary:#0f1115;
+    --dsw-alias-label-secondary:#4b5563;
+    --dsw-alias-label-tertiary:#8b9199;
+    --dsw-specific-sidebar-fill:#f9fafb;
+    --dsw-alias-border-l1:rgba(0,0,0,.06);
+    --dsw-alias-border-l3:rgba(0,0,0,.08);
+    --dsw-specific-bubble:#eef3ff;
+    --dsh-chat-content-width:780px;
+  }
+  body[data-ds-dark-theme]{
+    --dsw-alias-bg-base:#151517;
+    --dsw-alias-label-primary:#f9fafb;
+    --dsw-alias-label-secondary:#c8ccd2;
+    --dsw-alias-label-tertiary:#8e939b;
+    --dsw-specific-sidebar-fill:#1b1b1c;
+    --dsw-alias-border-l1:rgba(255,255,255,.07);
+    --dsw-alias-border-l3:rgba(255,255,255,.1);
+    --dsw-specific-bubble:#26324a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font:14px/1.6 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--dsw-alias-label-primary);
+    background:var(--dsw-specific-sidebar-fill);
+    overflow:hidden;
+  }
+  .app{display:flex;height:100vh}
+  .side{
+    width:240px;flex:none;border-right:.5px solid var(--dsw-alias-border-l3);
+    padding:14px 12px;font-size:13px;color:var(--dsw-alias-label-tertiary);
+  }
+  .side b{display:block;color:var(--dsw-alias-label-primary);font-size:13px;margin:18px 0 6px}
+  .side .item{padding:4px 8px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .side .item.on{background:var(--dsw-alias-border-l1);color:var(--dsw-alias-label-primary)}
+  .conv{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--dsw-alias-bg-base)}
+  .head{
+    flex:none;display:flex;gap:20px;align-items:center;height:46px;padding:0 20px;
+    border-bottom:.5px solid var(--dsw-alias-border-l3);
+    font-size:13px;color:var(--dsw-alias-label-tertiary);
+  }
+  .head .active{color:var(--dsw-alias-label-primary);font-weight:600}
+
+  /* 画布：真实的 .body 结构 —— 它自己不是滚动容器 */
+  .canvas{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+  .scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 32px;scrollbar-gutter:stable}
+  .column{max-width:var(--dsh-chat-content-width);width:100%;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+  .msg{font-size:14px;line-height:24px}
+  .msg.assistant{color:var(--dsw-alias-label-primary)}
+  .msg.user{align-self:flex-end;max-width:72%;background:var(--dsw-specific-bubble);padding:10px 14px;border-radius:14px}
+  .msg p{margin:0 0 8px}
+  .msg p:last-child{margin-bottom:0}
+  .caret{display:inline-block;width:7px;height:15px;background:var(--dsw-alias-label-primary);vertical-align:-2px;animation:blink 1s steps(2) infinite}
+  .caret[hidden]{display:none}
+  @keyframes blink{50%{opacity:0}}
+  .tool{
+    font-size:13px;color:var(--dsw-alias-label-tertiary);
+    border:.5px solid var(--dsw-alias-border-l1);border-radius:8px;padding:6px 10px;width:fit-content;
+  }
+  .composer{flex:none;padding:12px 32px 18px;display:flex;justify-content:center}
+  .input{
+    width:100%;max-width:var(--dsh-chat-content-width);border:.5px solid var(--dsw-alias-border-l1);
+    border-radius:14px;padding:10px 14px;color:var(--dsw-alias-label-tertiary);background:var(--dsw-alias-bg-base);
+    box-shadow:0 4px 16px rgba(0,0,0,.05);
+  }
+
+  /* 预览控制面板（不属于插件） */
+  .panel{
+    position:fixed;left:12px;top:64px;z-index:20;width:216px;
+    background:color-mix(in srgb, var(--dsw-alias-bg-base) 92%, transparent);
+    border:.5px solid var(--dsw-alias-border-l1);border-radius:12px;padding:10px;
+    box-shadow:0 8px 28px rgba(0,0,0,.12);
+    backdrop-filter:blur(12px);
+    font-size:12px;color:var(--dsw-alias-label-secondary);
+  }
+  .panel h4{margin:0 0 8px;font-size:12px;color:var(--dsw-alias-label-tertiary);font-weight:500;letter-spacing:.02em}
+  .row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+  button{
+    font:inherit;font-size:12px;padding:3px 8px;border-radius:7px;cursor:pointer;
+    border:.5px solid var(--dsw-alias-border-l3);background:transparent;color:var(--dsw-alias-label-secondary);
+  }
+  button:hover{background:var(--dsw-alias-border-l1)}
+  button.on{border-color:#4176E6;color:#4176E6}
+  .panel label{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .panel input[type=range]{flex:1;accent-color:#4176E6}
+  .hint{color:var(--dsw-alias-label-tertiary);font-size:11px;line-height:16px;margin-top:8px}
+  .hint code{font-family:ui-monospace,Consolas,monospace;font-size:11px}
+  .report{
+    font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:15px;
+    white-space:pre-wrap;margin-top:6px;padding-top:6px;border-top:.5px solid var(--dsw-alias-border-l1);
+    color:var(--dsw-alias-label-secondary);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div style="font-weight:600;color:var(--dsw-alias-label-primary);padding:4px 8px">DeepSeek Harness</div>
+    <b>工作区</b>
+    <div class="item">project</div>
+    <div class="item on">dsh-happy</div>
+    <div class="item">TaskDesk</div>
+  </aside>
+
+  <main class="conv">
+    <div class="head"><span class="active">对话</span><span>轨迹</span></div>
+
+    <div class="canvas" data-conversation-content>
+      <div class="scroll" data-conversation-scroll>
+        <div class="column" id="column">
+          <div class="msg user">给对话区加一层极简的边缘光，别干扰中间的文字。</div>
+          <div class="msg assistant">
+            <p>动效只在正文列两侧的空白带里发生，中间永远是干净的纸面。左边是“向内看”，右边是“向外够”，两边都在你说的那条边界之外。</p>
+            <p>下面这行会随模拟状态变化；文字区在整段过程中不应该有任何亮度或位置变化。</p>
+          </div>
+          <div id="rows" style="display:flex;flex-direction:column;gap:10px"></div>
+          <div class="msg assistant"><p>读到这里时，光应该在你余光里，而不是视线里。<span class="caret" id="caret" hidden></span></p></div>
+        </div>
+      </div>
+      <div class="composer"><div class="input">发消息或创建任务，/ 调用指令，@ 文件或对话</div></div>
+    </div>
+  </main>
+</div>
+
+<div class="panel">
+  <h4>模拟 Agent 状态</h4>
+  <div class="row" id="modes">
+    <button data-mode="idle" class="on">待命</button>
+    <button data-mode="think">思考</button>
+    <button data-mode="read">检索</button>
+    <button data-mode="web">联网</button>
+    <button data-mode="write">写码</button>
+    <button data-mode="wait">等待</button>
+    <button data-mode="error">出错</button>
+  </div>
+  <h4>版面</h4>
+  <div class="row">
+    <button id="theme">深色 / 浅色</button>
+    <button id="unmount">卸载插件</button>
+  </div>
+  <h4>背景</h4>
+  <div class="row">
+    <select id="theme-pick" title="选一个主题直接看"></select>
+    <button id="theme-next">随机下一个</button>
+  </div>
+  <label>正文列宽 <input id="width" type="range" min="640" max="960" step="10" value="780"></label>
+  <div class="hint">
+    插件监听的是 DOM 里的 <code>data-tool</code> / <code>data-state</code>，这里用假行模拟。<br>
+    <code>Alt+T</code> 换背景 · <code>Alt+D</code> 切明暗。<br>
+    减少动态效果：<b id="rm">检测中…</b><br>
+    降级验证：见同目录 README「减少动态效果」一节。
+  </div>
+</div>
+
+<script>
+  // 预览用的最小模块加载器替身：截获 factory，再手动 apply。
+  window.__ModuleLoader__ = {
+    load(mod) { window.__auroraModule = mod; },
+  };
+  // 预览用：#theme=warp 指定背景，#dark 直接深色
+  try {
+    var tm = location.hash.match(/theme=([a-z]+)/);
+    if (tm) localStorage.setItem('dsh.happy.theme', tm[1]);
+  } catch (e) { /* 隐私模式下忽略 */ }
+</script>
+<script src="./client.js"></script>
+<script>
+  (function () {
+    var rows = document.getElementById('rows');
+    var caret = document.getElementById('caret');
+    var canvas = document.querySelector('[data-conversation-content]');
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('#modes button'));
+    var unmountBtn = document.getElementById('unmount');
+    var themeBtn = document.getElementById('theme');
+    var widthInput = document.getElementById('width');
+    var applyCount = 0;
+    var cleanup = null;
+
+    function clearRows() {
+      while (rows.firstChild) rows.removeChild(rows.firstChild);
+    }
+
+    function addRow(tool, variant, state) {
+      var el = document.createElement('div');
+      el.className = 'tool';
+      el.setAttribute('data-tool', tool);
+      el.setAttribute('data-state', state || 'running');
+      if (variant) el.setAttribute('data-variant', variant);
+      el.textContent = tool + ' · ' + (state || 'running');
+      rows.appendChild(el);
+    }
+
+    var MODES = {
+      idle: function () { clearRows(); caret.hidden = true; },
+      think: function () { clearRows(); caret.hidden = false; },
+      read: function () { clearRows(); caret.hidden = true; addRow('grep', 'search'); },
+      web: function () { clearRows(); caret.hidden = true; addRow('web_search', 'web'); },
+      write: function () { clearRows(); caret.hidden = true; addRow('edit', 'edit'); },
+      wait: function () { clearRows(); caret.hidden = true; addRow('ask_user_question', 'others'); },
+      error: function () { clearRows(); caret.hidden = true; addRow('pwsh', 'bash', 'error'); },
+    };
+
+    function select(mode) {
+      buttons.forEach(function (b) { b.classList.toggle('on', b.dataset.mode === mode); });
+      MODES[mode]();
+      try { sessionStorage.setItem('preview.mode', mode); } catch (e) { /* 隐私模式忽略 */ }
+    }
+
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { select(b.dataset.mode); });
+    });
+
+    themeBtn.addEventListener('click', function () {
+      var body = document.body;
+      if (body.hasAttribute('data-ds-dark-theme')) body.removeAttribute('data-ds-dark-theme');
+      else body.setAttribute('data-ds-dark-theme', '');
+    });
+
+    widthInput.addEventListener('input', function () {
+      document.documentElement.style.setProperty('--dsh-chat-content-width', widthInput.value + 'px');
+    });
+
+    function mount() {
+      var mod = window.__auroraModule;
+      var list = [];
+      var ctx = {
+        effect: function (fn) {
+          var off = fn();
+          if (typeof off === 'function') list.push(off);
+          return off;
+        },
+      };
+      var exported = mod.factory(function (name) { throw new Error('preview has no module table: ' + name); });
+      exported.apply(ctx);
+      applyCount += 1;
+      unmountBtn.textContent = '卸载插件';
+      unmountBtn.classList.remove('on');
+      cleanup = function () {
+        while (list.length) list.pop()();
+        cleanup = null;
+      };
+    }
+
+    // 主题下拉：选一个直接看，不用反复按 Alt+T
+    var THEME_LIST = [
+      ['warp', '星空跃迁'], ['rain', '代码雨'], ['circuit', '电路脉冲'],
+      ['sword', '华山论剑'], ['cat', '小猫散步'],
+      ['kid', '小女生'], ['shooter', '飞机大战'], ['racer', '赛车'], ['snow', '飘雪'], ['bubbles', '肥皂泡']
+    ];
+    var pick = document.getElementById('theme-pick');
+    var stored = '';
+    try { stored = localStorage.getItem('dsh.happy.theme') || ''; } catch (e) { /* ignore */ }
+    pick.innerHTML = '<option value="">随机（每个回合一个）</option>' + THEME_LIST.map(function (t) {
+      return '<option value="' + t[0] + '"' + (t[0] === stored ? ' selected' : '') + '>' + t[1] + '</option>';
+    }).join('');
+    pick.addEventListener('change', function () {
+      try {
+        if (pick.value) localStorage.setItem('dsh.happy.theme', pick.value);
+        else localStorage.removeItem('dsh.happy.theme');
+      } catch (e) { /* ignore */ }
+      // 清掉 hash 里的 theme=，否则重载后又被 hash 覆盖
+      if (location.hash) history.replaceState(null, '', location.pathname);
+      location.reload();
+    });
+
+    document.getElementById('theme-next').addEventListener('click', function () {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 't', altKey: true }));
+    });
+
+    unmountBtn.addEventListener('click', function () {
+      if (cleanup) {
+        cleanup();
+        unmountBtn.textContent = '重新装载';
+        unmountBtn.classList.add('on');
+      } else {
+        mount();
+        var resume = 'read';
+        try { resume = sessionStorage.getItem('preview.mode') || 'read'; } catch (e) { /* ignore */ }
+        select(MODES[resume] ? resume : 'read');
+      }
+    });
+
+    mount();
+    // 默认进「检索」（在干活）——待命状态下背景是刻意不画的，直接打开会以为没生效。
+    var initial = 'read';
+    try { initial = sessionStorage.getItem('preview.mode') || 'read'; } catch (e) { /* ignore */ }
+    if (!MODES[initial]) initial = 'read';
+    select(initial);
+    // 截图 / 联调用：#mode=write 直接进某个状态，#dark 走深色。
+    if (location.hash.indexOf('dark') >= 0) themeBtn.click();
+    var m = location.hash.match(/mode=([a-z]+)/);
+    if (m && MODES[m[1]]) select(m[1]);
+
+    var rm = document.getElementById('rm');
+    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function paintRm() { rm.textContent = mq.matches ? '已开启（动效已降级）' : '未开启'; }
+    paintRm();
+    if (mq.addEventListener) mq.addEventListener('change', paintRm);
+    window.__previewApplyCount = function () { return applyCount; };
+  })();
+</script>
+
+</body>
+</html>

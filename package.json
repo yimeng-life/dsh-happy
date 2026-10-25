@@ -1,0 +1,51 @@
+{
+  "name": "dsh-happy",
+  "version": "0.5.0",
+  "description": "Full-canvas animated backgrounds for the DSH conversation pane: ten scenes including starfield, code rain, circuit, sword, cat, girl, fighter jet, racer, snow and bubbles.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "conversation",
+    "background",
+    "animation"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "preview.html",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yimeng-life/dsh-happy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yimeng-life/dsh-happy/issues"
+  },
+  "homepage": "https://happy.yimeng.life/"
+}
