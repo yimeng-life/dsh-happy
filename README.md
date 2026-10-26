@@ -71,6 +71,14 @@ git clone https://github.com/yimeng-life/dsh-happy.git
 
 ---
 
+## 水印
+
+右上角有一枚淡淡的 `dsh-happy` 字标：颜色走 `--dsw-alias-label-tertiary`，整体 50% 不透明，只在背景播放时淡入（比背景晚 160ms），空闲时随背景一起消失。位置落在正文列右侧的留白里，因为背景层在 `z-index:-1`，它不会盖住任何字，也不挡交互。
+
+它是 `.dsh-stage::after` 的 `content`，**没有额外 DOM、没有每帧开销**，十种主题共用；想换位置、大小或文字，只改 `client.js` 里那一条 `.dsh-stage::after` 规则即可。
+
+---
+
 ## 加一种新背景
 
 在 `client.js` 里写一个 `themeXxx(g)`，返回 `{ resize(), step(dt) }`，再往 `STAGE_THEMES` 数组加一行 `{ id, name, create }`。`g` 提供 `{ ctx, w, h, pal }`。

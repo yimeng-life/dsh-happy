@@ -65,6 +65,27 @@ window.__ModuleLoader__.load({
 .dsh-stage[data-on]{opacity:1}
 .dsh-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 
+/*
+ * 右上角品牌字标。
+ * 用伪元素而不是 DOM：不额外挂节点，也不占每帧预算，十种主题自动共用。
+ * 位置落在正文列右侧的留白里；z-index:-1 的祖先保证它永远在正文之下。
+ */
+.dsh-stage::after{
+  content:"dsh-happy";
+  position:absolute;
+  top:12px;
+  right:18px;
+  font:600 11px/1 var(--dsw-font-family,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif);
+  letter-spacing:.09em;
+  color:var(--dsw-alias-label-tertiary,#8b9199);
+  opacity:0;
+  transform:translateY(-3px);
+  transition:opacity 800ms ease 160ms,transform 800ms ease 160ms;
+  pointer-events:none;
+  user-select:none;
+}
+.dsh-stage[data-on]::after{opacity:.5;transform:none}
+
 /* 中间的纸面：按正文列宽罩住文字区，两侧留亮 */
 .dsh-stage__veil{
   position:absolute;
@@ -109,6 +130,7 @@ body[data-ds-dark-theme] .dsh-stage[data-theme="shooter"] .dsh-stage__veil{
 
 @media (prefers-reduced-motion:reduce){
   .dsh-stage{transition:none !important}
+  .dsh-stage::after{transition:none !important}
 }
 `;
 

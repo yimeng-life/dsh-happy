@@ -1,6 +1,6 @@
 {
   "name": "dsh-happy",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Full-canvas animated backgrounds for the DSH conversation pane: ten scenes including starfield, code rain, circuit, sword, cat, girl, fighter jet, racer, snow and bubbles.",
   "type": "module",
   "license": "MIT",
